@@ -1,0 +1,30 @@
+name: Gradle CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'  # Runs on pushes to feature branches
+  pull_request:
+    branches:
+      - main
+      - 'feature/**'  # Runs on pull requests targeting feature branches
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Run tests
+        run: ./gradlew test

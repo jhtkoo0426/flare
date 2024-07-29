@@ -1,13 +1,15 @@
 package flare;
 
 
-public class App {
+import flare.ibkr.IBKRClient;
 
-    public String dummyMethod() {
-        return "haha";
-    }
+public class App {
 
     public static void main(String[] args) {
         System.out.println("Hello world!");
+        GenericBroker broker = new IBKRClient();
+        Thread thread = new Thread(broker);
+        thread.start();
     }
+
 }

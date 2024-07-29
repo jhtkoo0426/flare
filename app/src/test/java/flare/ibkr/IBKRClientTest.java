@@ -37,19 +37,13 @@ class IBKRClientTest {
     }
 
     @Test
-    void testOnOrderMade() {
-        //TODO IBKRClient.onOrderMade is currently empty. No assertion is needed yet.
-        ibkrClient.onOrderMade();
-    }
-
-    @Test
     void testOnOrderExecuted() {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outputStream));
-        ibkrClient.onOrderExecuted(123, 456.78, 100);
+        ibkrClient.onOrderPlaced(123, 456.78, 100);
         String actualOutput = outputStream.toString().trim();
         //FIXME Change assertion when the method for handling order execution output is changed.
-        assertEquals(actualOutput, "Order Executed: Order ID 123, Execution Price: 456.78, Quantity: 100");
+        assertEquals(actualOutput, "Order ID 123 placed: Execution price @ 456.78 and quantity 100.00.");
     }
 
     @Test
@@ -58,6 +52,6 @@ class IBKRClientTest {
         System.setOut(new PrintStream(outputStream));
         ibkrClient.onOrderCancelled(123);
         String actualOutput = outputStream.toString().trim();
-        assertEquals(actualOutput, "Order Cancelled: Order ID 123");
+        assertEquals(actualOutput, "Order ID 123 cancelled.");
     }
 }

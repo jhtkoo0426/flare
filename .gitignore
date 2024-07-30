@@ -7,3 +7,5 @@ build
 .idea
 /app/src/main/java/flare/logs/last_order_id.txt
 /app/src/main/java/flare/logs/order_logs.csv
+
+.env

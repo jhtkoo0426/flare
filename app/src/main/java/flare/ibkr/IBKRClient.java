@@ -58,7 +58,7 @@ public class IBKRClient extends GenericBroker {
         order.totalQuantity(Decimal.get(quantity));
         order.lmtPrice(price);
 
-        int orderId = registerOrderData(symbol, secType, quantity);
+        int orderId = orderManager.registerOrderData(symbol, secType, quantity);
         connectionManager.getBrokerClient().placeOrder(orderId, contract, order);
     }
 

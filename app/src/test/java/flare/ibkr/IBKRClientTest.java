@@ -1,6 +1,8 @@
 package flare.ibkr;
 
 import com.ib.client.EClientSocket;
+import flare.PersistentStorage;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,21 +11,24 @@ import java.io.PrintStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
-
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class IBKRClientTest {
 
     private IBKRClient ibkrClient;
-    private IBKRConnectionManager mockConnectionManager;
-    private EClientSocket mockBrokerClient;
 
     @BeforeEach
     void setUp() {
-        mockConnectionManager = mock(IBKRConnectionManager.class);
-        mockBrokerClient = mock(EClientSocket.class);
+        IBKRConnectionManager mockConnectionManager = mock(IBKRConnectionManager.class);
+        EClientSocket mockBrokerClient = mock(EClientSocket.class);
+        Dotenv mockDotenv = mock(Dotenv.class);
 
-        when(mockConnectionManager.getBrokerClient()).thenReturn(mockBrokerClient);
+        // Mock behavior for Dotenv
+        when(mockDotenv.get("LAST_ORDER_ID")).thenReturn("123");
+
+        // Replace the Dotenv instance in PersistentStorage with the mock
+        PersistentStorage.setDotenv(mockDotenv);
 
         ibkrClient = new IBKRClient() {
             @Override
@@ -42,8 +47,7 @@ class IBKRClientTest {
         System.setOut(new PrintStream(outputStream));
         ibkrClient.onOrderPlaced(123, 456.78, 100);
         String actualOutput = outputStream.toString().trim();
-        //FIXME Change assertion when the method for handling order execution output is changed.
-        assertEquals(actualOutput, "Order ID 123 placed: Execution price @ 456.78 and quantity 100.00.");
+        assertEquals("Order ID 123 placed: Execution price @ 456.78 and quantity 100.00.", actualOutput);
     }
 
     @Test
@@ -52,6 +56,6 @@ class IBKRClientTest {
         System.setOut(new PrintStream(outputStream));
         ibkrClient.onOrderCancelled(123);
         String actualOutput = outputStream.toString().trim();
-        assertEquals(actualOutput, "Order ID 123 cancelled.");
+        assertEquals("Order ID 123 cancelled.", actualOutput);
     }
 }

@@ -11,6 +11,14 @@ public class PersistentStorage {
     private static final String ENV_FILE = ".env";
     private static Dotenv dotenv = Dotenv.load();
 
+    private PersistentStorage(Dotenv dotenv) {
+        PersistentStorage.dotenv = dotenv;
+    }
+
+    public static void setDotenv(Dotenv dotenv) {
+        PersistentStorage.dotenv = dotenv;
+    }
+
     /**
      * Reads the last used orderId from the .env file.
      *
@@ -21,7 +29,7 @@ public class PersistentStorage {
         if (lastOrderId != null) {
             return Integer.parseInt(lastOrderId);
         }
-        return 0; // Default if no record is found
+        return 0;   // No record found
     }
 
     /**

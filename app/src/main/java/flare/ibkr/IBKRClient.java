@@ -5,6 +5,7 @@ import com.ib.client.Contract;
 import com.ib.client.Decimal;
 import com.ib.client.Order;
 import flare.GenericBroker;
+import flare.IPersistentStorage;
 import flare.OrderManager;
 import flare.PersistentStorage;
 
@@ -16,13 +17,15 @@ public class IBKRClient extends GenericBroker {
 
     private final IBKRConnectionManager connectionManager;
     private final OrderManager orderManager;
+    private final IPersistentStorage persistentStorage;
 
-    public IBKRClient() {
+    public IBKRClient(IPersistentStorage persistentStorage) {
+        this.persistentStorage = persistentStorage;
         connectionManager = new IBKRConnectionManager(new IBKRWrapper(this));
         orderManager = new OrderManager();
 
         // Initialize the orderId from persistent storage
-        int lastOrderId = PersistentStorage.readLastOrderId();
+        int lastOrderId = persistentStorage.readLastOrderId();
         orderManager.initializeOrderId(lastOrderId);
     }
 
@@ -71,7 +74,7 @@ public class IBKRClient extends GenericBroker {
         connectionManager.getBrokerClient().placeOrder(orderId, contract, order);
 
         // Update the last orderId in persistent storage
-        PersistentStorage.writeLastOrderId(orderManager.getCurrentOrderId());
+        persistentStorage.writeLastOrderId(orderManager.getCurrentOrderId());
     }
 
     @Override

@@ -1,30 +1,21 @@
 package flare;
 
-
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.FileWriter;
 import java.io.IOException;
 
 
-public class PersistentStorage {
+public class PersistentStorage implements IPersistentStorage {
     private static final String ENV_FILE = ".env";
-    private static Dotenv dotenv = Dotenv.load();
+    private Dotenv dotenv;
 
-    private PersistentStorage(Dotenv dotenv) {
-        PersistentStorage.dotenv = dotenv;
+    public PersistentStorage(Dotenv dotenv) {
+        this.dotenv = dotenv;
     }
 
-    public static void setDotenv(Dotenv dotenv) {
-        PersistentStorage.dotenv = dotenv;
-    }
-
-    /**
-     * Reads the last used orderId from the .env file.
-     *
-     * @return the last used orderId or 0 if no record is found
-     */
-    public static int readLastOrderId() {
+    @Override
+    public int readLastOrderId() {
         String lastOrderId = dotenv.get("LAST_ORDER_ID");
         if (lastOrderId != null) {
             return Integer.parseInt(lastOrderId);
@@ -32,12 +23,8 @@ public class PersistentStorage {
         return 0;   // No record found
     }
 
-    /**
-     * Writes the current orderId to the .env file.
-     *
-     * @param orderId the current orderId to be recorded
-     */
-    public static void writeLastOrderId(int orderId) {
+    @Override
+    public void writeLastOrderId(int orderId) {
         try (FileWriter writer = new FileWriter(ENV_FILE)) {
             writer.write("LAST_ORDER_ID=" + orderId + "\n");
         } catch (IOException e) {

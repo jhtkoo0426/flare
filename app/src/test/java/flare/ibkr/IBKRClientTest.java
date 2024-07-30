@@ -1,10 +1,13 @@
 package flare.ibkr;
 
+import com.ib.client.Contract;
 import com.ib.client.EClientSocket;
-import flare.PersistentStorage;
-import io.github.cdimascio.dotenv.Dotenv;
+import com.ib.client.Order;
+import flare.IPersistentStorage;
+import flare.OrderManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -14,30 +17,30 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 
-class IBKRClientTest {
+public class IBKRClientTest {
 
+    private IPersistentStorage mockPersistentStorage;
     private IBKRClient ibkrClient;
+    private OrderManager mockOrderManager;
     private IBKRConnectionManager mockConnectionManager;
     private EClientSocket mockBrokerClient;
-    private Dotenv mockDotenv;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
+        // Mock dependencies
+        mockPersistentStorage = mock(IPersistentStorage.class);
+        mockOrderManager = mock(OrderManager.class);
         mockConnectionManager = mock(IBKRConnectionManager.class);
         mockBrokerClient = mock(EClientSocket.class);
-        mockDotenv = mock(Dotenv.class);
 
-        // Mock behavior for Dotenv
-        when(mockDotenv.get("LAST_ORDER_ID")).thenReturn("123");
+        when(mockConnectionManager.getBrokerClient()).thenReturn(mockBrokerClient);
 
-        // Replace the Dotenv instance in PersistentStorage with the mock
-        PersistentStorage.setDotenv(mockDotenv);
+        // Configure mocks
+        when(mockPersistentStorage.readLastOrderId()).thenReturn(123);
+        when(mockOrderManager.getNextOrderId()).thenReturn(1);
 
-        // Set up IBKRClient with mocks
-        ibkrClient = new IBKRClient() {
-            @Override
-            public void sleep(long millis) {}
-        };
+        // Inject mocks into IBKRClient
+        ibkrClient = new IBKRClient(mockPersistentStorage);
     }
 
     @Test
@@ -51,7 +54,8 @@ class IBKRClientTest {
         System.setOut(new PrintStream(outputStream));
         ibkrClient.onOrderPlaced(123, 456.78, 100);
         String actualOutput = outputStream.toString().trim();
-        assertEquals("Order ID 123 placed: Execution price @ 456.78 and quantity 100.00.", actualOutput);
+        //FIXME Change assertion when the method for handling order execution output is changed.
+        assertEquals(actualOutput, "Order ID 123 placed: Execution price @ 456.78 and quantity 100.00.");
     }
 
     @Test
@@ -60,7 +64,6 @@ class IBKRClientTest {
         System.setOut(new PrintStream(outputStream));
         ibkrClient.onOrderCancelled(123);
         String actualOutput = outputStream.toString().trim();
-        assertEquals("Order ID 123 cancelled.", actualOutput);
-
+        assertEquals(actualOutput, "Order ID 123 cancelled.");
     }
 }

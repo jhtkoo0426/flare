@@ -104,22 +104,23 @@ public class IBKRWrapper implements EWrapper {
 
     @Override
     public void error(Exception e) {
-
+        System.out.println("Error: " + e.getMessage());
     }
 
     @Override
-    public void error(String s) {
-
+    public void error(String str) {
+        System.out.println("Error: " + str);
     }
 
     @Override
-    public void error(int i, int i1, String s, String s1) {
-
+    public void error(int id, int errorCode, String errorMsg, String advancedOrderRejectJson) {
+        String formattedMessage = String.format("IBKR TWS System [%d]: %s", errorCode, errorMsg);
+        System.out.println(formattedMessage);
     }
 
     @Override
     public void execDetails(int reqId, Contract contract, Execution execution) {
-        broker.onOrderExecuted(execution.orderId(), execution.price(), execution.shares().longValue());
+        broker.onOrderPlaced(execution.orderId(), execution.price(), execution.shares().longValue());
     }
 
     @Override
@@ -243,8 +244,14 @@ public class IBKRWrapper implements EWrapper {
     }
 
     @Override
-    public void orderStatus(int i, String s, Decimal decimal, Decimal decimal1, double v, int i1, int i2, double v1, int i3, String s1, double v2) {
-
+    public void orderStatus(int orderId, String status, Decimal filled, Decimal remaining, double avgFillPrice,
+                            int permId, int parentId, double lastFillPrice, int clientId, String whyHeld, double mktCapPrice) {
+        System.out.println("Order Status: " + status + " Order ID: " + orderId);
+        if (status.equals("Filled")) {
+            broker.onOrderFilled(orderId, avgFillPrice, filled.longValue());
+        } else if (status.equals("Cancelled")) {
+            broker.onOrderCancelled(orderId);
+        }
     }
 
     @Override

@@ -11,18 +11,21 @@ import java.io.PrintStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+
 
 class IBKRClientTest {
 
     private IBKRClient ibkrClient;
+    private IBKRConnectionManager mockConnectionManager;
+    private EClientSocket mockBrokerClient;
+    private Dotenv mockDotenv;
 
     @BeforeEach
     void setUp() {
-        IBKRConnectionManager mockConnectionManager = mock(IBKRConnectionManager.class);
-        EClientSocket mockBrokerClient = mock(EClientSocket.class);
-        Dotenv mockDotenv = mock(Dotenv.class);
+        mockConnectionManager = mock(IBKRConnectionManager.class);
+        mockBrokerClient = mock(EClientSocket.class);
+        mockDotenv = mock(Dotenv.class);
 
         // Mock behavior for Dotenv
         when(mockDotenv.get("LAST_ORDER_ID")).thenReturn("123");
@@ -30,6 +33,7 @@ class IBKRClientTest {
         // Replace the Dotenv instance in PersistentStorage with the mock
         PersistentStorage.setDotenv(mockDotenv);
 
+        // Set up IBKRClient with mocks
         ibkrClient = new IBKRClient() {
             @Override
             public void sleep(long millis) {}
@@ -57,5 +61,6 @@ class IBKRClientTest {
         ibkrClient.onOrderCancelled(123);
         String actualOutput = outputStream.toString().trim();
         assertEquals("Order ID 123 cancelled.", actualOutput);
+
     }
 }

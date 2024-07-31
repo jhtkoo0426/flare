@@ -1,13 +1,11 @@
 package flare.ibkr;
 
-import com.ib.client.Contract;
+
 import com.ib.client.EClientSocket;
-import com.ib.client.Order;
 import flare.IPersistentStorage;
 import flare.OrderManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -15,6 +13,7 @@ import java.io.PrintStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 
 public class IBKRClientTest {

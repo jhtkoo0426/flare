@@ -246,7 +246,10 @@ public class IBKRWrapper implements EWrapper {
     @Override
     public void orderStatus(int orderId, String status, Decimal filled, Decimal remaining, double avgFillPrice,
                             int permId, int parentId, double lastFillPrice, int clientId, String whyHeld, double mktCapPrice) {
-        System.out.println("Order Status: " + status + " Order ID: " + orderId);
+        System.out.printf("Order ID: %d Status: %s Filled: %s Remaining: %s Average Fill Price: %.2f " +
+                        "Perm ID: %d Parent ID: %d Last Fill Price: %.2f Client ID: %d Why Held: %s Market Cap Price: %.2f\n",
+                orderId, status, filled, remaining, avgFillPrice,
+                permId, parentId, lastFillPrice, clientId, whyHeld, mktCapPrice);
         if (status.equals("Filled")) {
             broker.onOrderFilled(orderId, avgFillPrice, filled.longValue());
         } else if (status.equals("Cancelled")) {

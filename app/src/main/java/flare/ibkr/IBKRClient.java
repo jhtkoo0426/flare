@@ -4,9 +4,11 @@ package flare.ibkr;
 import com.ib.client.Contract;
 import com.ib.client.Decimal;
 import com.ib.client.Order;
+import com.sun.net.httpserver.Request;
 import flare.GenericBroker;
 import flare.IPersistentStorage;
 import flare.OrderManager;
+import flare.RequestManager;
 
 
 /**
@@ -16,12 +18,14 @@ public class IBKRClient extends GenericBroker {
 
     private final IBKRConnectionManager connectionManager;
     private final OrderManager orderManager;
+    private final RequestManager requestManager;
     private final IPersistentStorage persistentStorage;
 
     public IBKRClient(IPersistentStorage persistentStorage) {
         this.persistentStorage = persistentStorage;
         connectionManager = new IBKRConnectionManager(new IBKRWrapper(this));
         orderManager = new OrderManager();
+        requestManager = new RequestManager();
 
         // Initialize the orderId from persistent storage
         int lastOrderId = persistentStorage.readLastOrderId();
@@ -93,7 +97,8 @@ public class IBKRClient extends GenericBroker {
 
     @Override
     public void subscribeMarketData(String symbol, String secType) {
-
+        int requestId = requestManager.getNextId();
+        requestManager.registerRequestData(requestId, symbol, "MKT_DATA_" + symbol + "_" + secType);
     }
 
     @Override

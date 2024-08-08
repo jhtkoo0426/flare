@@ -7,10 +7,8 @@ package flare;
  */
 public abstract class GenericBroker implements Runnable {
 
-    public OrderManager orderManager;
-
     public GenericBroker() {
-        this.orderManager = new OrderManager();
+
     }
 
     // Abstract methods

@@ -36,7 +36,7 @@ public class IBKRClientTest {
 
         // Configure mocks
         when(mockPersistentStorage.readLastOrderId()).thenReturn(123);
-        when(mockOrderManager.getNextOrderId()).thenReturn(1);
+        when(mockOrderManager.getNextId()).thenReturn(1);
 
         // Inject mocks into IBKRClient
         ibkrClient = new IBKRClient(mockPersistentStorage);

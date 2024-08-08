@@ -1,27 +1,43 @@
 package flare;
 
-
 import java.io.*;
 
 
 public class OrderManager {
 
-    private SharedDataStorage storage;
+    private final SharedDataStorage storage;
+    private final String ID_KEY = "ORDER_ID";
 
     public OrderManager() {
         storage = SharedDataStorage.getInstance();
     }
 
-    public void initializeOrderId(int lastOrderId) {
-        storage.initializeOrderId(lastOrderId);
+    /**
+     * Initializes a specific ID to the provided value.
+     * This should be called on application start to ensure the ID continues from where it left off.
+     *
+     * @param lastIdValue the last used ID value from previous sessions
+     */
+    public void initializeId(int lastIdValue) {
+        storage.initializeId(ID_KEY, lastIdValue);
     }
 
-    public int getNextOrderId() {
-        return storage.getNextOrderId();
+    /**
+     * Retrieves the next unique ID for the specified key.
+     *
+     * @return the next unique ID
+     */
+    public int getNextId() {
+        return storage.getNextId(ID_KEY);
     }
 
-    public int getCurrentOrderId() {
-        return storage.getCurrentOrderId();
+    /**
+     * Retrieves the current ID for the specified key without incrementing it.
+     *
+     * @return the current ID
+     */
+    public int getCurrentId() {
+        return storage.getCurrentId(ID_KEY);
     }
 
     /**
@@ -36,11 +52,10 @@ public class OrderManager {
         System.out.printf("Order ID %d registered for order - %s (%s) @ %.2f\n", orderId, symbol, secType, quantity);
         String line = String.format("%d,%s,%s,%f\n", orderId, symbol, secType, quantity);
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/java/flare/logs/order_logs.csv"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/java/flare/logs/order_logs.csv", true))) {
             writer.write(line);
         } catch (IOException e) {
             System.err.println("[OrderManager] Error saving last order ID: " + e.getMessage());
         }
     }
-
 }

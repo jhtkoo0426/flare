@@ -1,26 +1,27 @@
 package flare;
 
-
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-
 /**
- * Singleton class that provides a thread-safe mechanism for managing the orderId variable.
- * This class ensures that the orderId is unique and incremented atomically across the application.
+ * Singleton class that provides a thread-safe mechanism for managing various unique IDs.
+ * This class ensures that each ID is unique and incremented atomically across the application.
  */
 public class SharedDataStorage {
     private static SharedDataStorage instance;
-    private Lock orderIdLock;
-    private int orderId;
+
+    // Map to store locks and IDs for different keys
+    private ConcurrentHashMap<String, Lock> locks;
+    private ConcurrentHashMap<String, Integer> ids;
 
     /**
      * Private constructor to prevent instantiation from other classes.
-     * Initializes the orderId lock.
+     * Initializes the locks and IDs maps.
      */
     private SharedDataStorage() {
-        orderIdLock = new ReentrantLock();
-        orderId = -1; // Indicates that orderId should be initialized
+        locks = new ConcurrentHashMap<>();
+        ids = new ConcurrentHashMap<>();
     }
 
     /**
@@ -37,52 +38,58 @@ public class SharedDataStorage {
     }
 
     /**
-     * Returns the next unique orderId. This method uses a lock to ensure that
-     * the orderId is incremented atomically, preventing duplicate order IDs.
+     * Initializes a specific ID to the provided value. This should be called
+     * on application start to ensure the ID continues from where it left off.
      *
-     * @return the next unique orderId
+     * @param key the identifier for the ID (e.g., "orderId", "requestId")
+     * @param initialValue the initial value for this ID
      */
-    public int getNextOrderId() {
-        System.out.println("SDS.getNextOrderId called. Now locking orderId...");
-        orderIdLock.lock();
+    public void initializeId(String key, int initialValue) {
+        locks.putIfAbsent(key, new ReentrantLock());
+        ids.put(key, initialValue);
+    }
+
+    /**
+     * Returns the next unique ID for the specified key. This method uses a lock
+     * to ensure that the ID is incremented atomically, preventing duplicates.
+     *
+     * @param key the identifier for the ID (e.g., "orderId", "requestId")
+     * @return the next unique ID
+     */
+    public int getNextId(String key) {
+        Lock lock = locks.get(key);
+        if (lock == null) {
+            throw new IllegalArgumentException("ID not initialized for key: " + key);
+        }
+
+        lock.lock();
         try {
-            if (orderId == -1) {
-                throw new IllegalStateException("OrderId has not been initialized.");
+            if (!ids.containsKey(key)) {
+                throw new IllegalStateException(key + " has not been initialized.");
             }
-            System.out.println("SDS.getNextOrderId - orderId has been incremented.");
-            return ++orderId;
+            return ids.merge(key, 1, Integer::sum);
         } finally {
-            orderIdLock.unlock();
-            System.out.println("SDS.getNextOrderId ended. Now unlocking orderId...");
+            lock.unlock();
         }
     }
 
     /**
-     * Returns the current orderId without incrementing it.
+     * Returns the current ID for the specified key without incrementing it.
      *
-     * @return the current orderId
+     * @param key the identifier for the ID (e.g., "orderId", "requestId")
+     * @return the current ID
      */
-    public int getCurrentOrderId() {
-        orderIdLock.lock();
-        try {
-            return orderId;
-        } finally {
-            orderIdLock.unlock();
+    public int getCurrentId(String key) {
+        Lock lock = locks.get(key);
+        if (lock == null) {
+            throw new IllegalArgumentException("ID not initialized for key: " + key);
         }
-    }
 
-    /**
-     * Initializes the orderId to the last used orderId + 1. This should be called
-     * on application start to ensure the orderId continues from where it left off.
-     *
-     * @param lastOrderId the last used orderId from previous sessions
-     */
-    public void initializeOrderId(int lastOrderId) {
-        orderIdLock.lock();
+        lock.lock();
         try {
-            this.orderId = lastOrderId;
+            return ids.getOrDefault(key, -1);
         } finally {
-            orderIdLock.unlock();
+            lock.unlock();
         }
     }
 }

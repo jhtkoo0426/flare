@@ -25,7 +25,7 @@ public class IBKRClient extends GenericBroker {
 
         // Initialize the orderId from persistent storage
         int lastOrderId = persistentStorage.readLastOrderId();
-        orderManager.initializeOrderId(lastOrderId);
+        orderManager.initializeId(lastOrderId);
     }
 
     @Override
@@ -68,12 +68,12 @@ public class IBKRClient extends GenericBroker {
         order.totalQuantity(Decimal.get(quantity));
         order.lmtPrice(price);
 
-        int orderId = orderManager.getNextOrderId();
+        int orderId = orderManager.getNextId();
         orderManager.registerOrderData(orderId, symbol, secType, quantity);
         connectionManager.getBrokerClient().placeOrder(orderId, contract, order);
 
         // Update the last orderId in persistent storage
-        persistentStorage.writeLastOrderId(orderManager.getCurrentOrderId());
+        persistentStorage.writeLastOrderId(orderManager.getCurrentId());
     }
 
     @Override

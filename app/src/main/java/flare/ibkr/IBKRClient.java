@@ -7,7 +7,6 @@ import com.ib.client.Order;
 import flare.GenericBroker;
 import flare.IPersistentStorage;
 import flare.OrderManager;
-import flare.PersistentStorage;
 
 
 /**
@@ -90,5 +89,15 @@ public class IBKRClient extends GenericBroker {
     @Override
     public void onOrderCancelled(int orderId) {
         System.out.printf("Order ID %d cancelled.\n", orderId);
+    }
+
+    @Override
+    public void subscribeMarketData(String symbol, String secType) {
+
+    }
+
+    @Override
+    public void connectDataStream(String name) {
+
     }
 }

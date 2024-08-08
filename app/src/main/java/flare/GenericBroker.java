@@ -1,14 +1,6 @@
 package flare;
 
 
-import com.ib.client.Order;
-
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-
 /**
  * Superclass for wrapping various broker APIs. All broker interactions should be done via
  * this class.
@@ -28,6 +20,9 @@ public abstract class GenericBroker implements Runnable {
     public abstract void onOrderPlaced(int orderId, double executionPrice, double quantity);
     public abstract void onOrderFilled(int orderId, double avgFillPrice, double quantityFilled);
     public abstract void onOrderCancelled(int orderId);
+
+    public abstract void subscribeMarketData(String symbol, String secType);
+    public abstract void connectDataStream(String name);
 
     // Re-usable methods
     public void sleep(long millis) {

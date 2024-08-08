@@ -4,11 +4,10 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
-
 public class KeyManager {
-    private final SharedDataStorage storage;
-    private final String idKey;
-    private final String logFilePath;
+    protected final SharedDataStorage storage;
+    protected final String idKey;
+    protected final String logFilePath;
 
     public KeyManager(String idKey, String logFilePath) {
         this.storage = SharedDataStorage.getInstance();

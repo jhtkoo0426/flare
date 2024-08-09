@@ -288,8 +288,9 @@ public class IBKRWrapper implements EWrapper {
     }
 
     @Override
-    public void realtimeBar(int i, long l, double v, double v1, double v2, double v3, Decimal decimal, Decimal decimal1, int i1) {
-
+    public void realtimeBar(int reqId, long time, double open, double high, double low, double close, Decimal volume, Decimal wap, int count) {
+        System.out.println("EWrapper.realtimeBar");
+        broker.notifyAnalyst(reqId, time, open, high, low, close, volume.longValue());
     }
 
     @Override

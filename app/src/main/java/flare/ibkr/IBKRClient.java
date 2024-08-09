@@ -4,7 +4,6 @@ package flare.ibkr;
 import com.ib.client.Contract;
 import com.ib.client.Decimal;
 import com.ib.client.Order;
-import com.sun.net.httpserver.Request;
 import flare.GenericBroker;
 import flare.IPersistentStorage;
 import flare.OrderManager;
@@ -30,12 +29,13 @@ public class IBKRClient extends GenericBroker {
         // Initialize the orderId from persistent storage
         int lastOrderId = persistentStorage.readLastOrderId();
         orderManager.initializeId(lastOrderId);
+        requestManager.initializeId(0);
     }
 
     @Override
     public void run() {
         boolean initialized = false;
-        boolean testOrder = false;
+        boolean subscribed = false;
 
         while (true) {
             if (!connectionManager.getBrokerClient().isConnected()) {
@@ -48,10 +48,11 @@ public class IBKRClient extends GenericBroker {
                     initialized = true;
                     sleep(1000);
                 } else {
-                    if (!testOrder) {
-                        makeOrder("NVDA", "STK", "MKT", 113.00, 1);
+                    if (!subscribed) {
+                        subscribeEquityData("CRWD");
+                        subscribed = true;
                     }
-                    testOrder = true;
+                    sleep(1000);
                 }
             }
         }
@@ -96,13 +97,19 @@ public class IBKRClient extends GenericBroker {
     }
 
     @Override
-    public void subscribeMarketData(String symbol, String secType) {
+    public void subscribeEquityData(String symbol) {
         int requestId = requestManager.getNextId();
-        requestManager.registerRequestData(requestId, symbol, "MKT_DATA_" + symbol + "_" + secType);
+        requestManager.registerRequestData(requestId, symbol, "DATA_STK_" + symbol);
+        Contract contract = new Contract();
+        contract.symbol(symbol);
+        contract.secType("STK");
+        contract.currency("USD");
+        contract.exchange("SMART");
+        connectionManager.getBrokerClient().reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
     }
 
     @Override
-    public void connectDataStream(String name) {
-
+    public void notifyAnalyst(int reqId, long time, double open, double high, double low, double close, double volume) {
+        System.out.printf("reqId %d | time: %d | o=%.2f, h=%.2f, l=%.2f, c=%.2f | volume=%.2f\n", reqId, time, open, high, low, close, volume);
     }
 }

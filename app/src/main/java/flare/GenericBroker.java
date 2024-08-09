@@ -19,8 +19,9 @@ public abstract class GenericBroker implements Runnable {
     public abstract void onOrderFilled(int orderId, double avgFillPrice, double quantityFilled);
     public abstract void onOrderCancelled(int orderId);
 
-    public abstract void subscribeMarketData(String symbol, String secType);
-    public abstract void connectDataStream(String name);
+    public abstract void subscribeEquityData(String symbol);
+
+    public abstract void notifyAnalyst(int reqId, long time, double open, double high, double low, double close, double volume);
 
     // Re-usable methods
     public void sleep(long millis) {

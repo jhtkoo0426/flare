@@ -2,6 +2,7 @@ package flare.ibkr;
 
 
 import com.ib.client.EClientSocket;
+import flare.Analyst;
 import flare.IPersistentStorage;
 import flare.OrderManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ public class IBKRClientTest {
     private OrderManager mockOrderManager;
     private IBKRConnectionManager mockConnectionManager;
     private EClientSocket mockBrokerClient;
+    private Analyst analyst;
 
     @BeforeEach
     public void setUp() {
@@ -31,6 +33,7 @@ public class IBKRClientTest {
         mockOrderManager = mock(OrderManager.class);
         mockConnectionManager = mock(IBKRConnectionManager.class);
         mockBrokerClient = mock(EClientSocket.class);
+        analyst = mock(Analyst.class);
 
         when(mockConnectionManager.getBrokerClient()).thenReturn(mockBrokerClient);
 
@@ -39,7 +42,7 @@ public class IBKRClientTest {
         when(mockOrderManager.getNextId()).thenReturn(1);
 
         // Inject mocks into IBKRClient
-        ibkrClient = new IBKRClient(mockPersistentStorage);
+        ibkrClient = new IBKRClient(mockPersistentStorage, analyst);
     }
 
     @Test

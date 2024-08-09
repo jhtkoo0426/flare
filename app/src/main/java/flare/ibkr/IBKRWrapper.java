@@ -2,6 +2,7 @@ package flare.ibkr;
 
 
 import com.ib.client.*;
+import flare.Analyst;
 import flare.GenericBroker;
 
 import java.util.List;
@@ -12,9 +13,11 @@ import java.util.Set;
 public class IBKRWrapper implements EWrapper {
 
     private final GenericBroker broker;
+    private final Analyst analyst;
 
-    public IBKRWrapper(GenericBroker broker) {
+    public IBKRWrapper(GenericBroker broker, Analyst analyst) {
         this.broker = broker;
+        this.analyst = analyst;
     }
 
     @Override
@@ -289,8 +292,7 @@ public class IBKRWrapper implements EWrapper {
 
     @Override
     public void realtimeBar(int reqId, long time, double open, double high, double low, double close, Decimal volume, Decimal wap, int count) {
-        System.out.println("EWrapper.realtimeBar");
-        broker.notifyAnalyst(reqId, time, open, high, low, close, volume.longValue());
+        analyst.listenBar(reqId, time, open, high, low, close, volume.longValue());
     }
 
     @Override

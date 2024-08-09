@@ -11,9 +11,11 @@ public class App {
         Dotenv dotenv = Dotenv.load();
         IPersistentStorage persistentStorage = new PersistentStorage(dotenv);
 
-        GenericBroker broker = new IBKRClient(persistentStorage);
+        Analyst analyst = new Analyst();
+        GenericBroker broker = new IBKRClient(persistentStorage, analyst);
         Thread thread = new Thread(broker);
         thread.start();
+
     }
 
 }

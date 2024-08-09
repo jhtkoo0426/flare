@@ -4,10 +4,7 @@ package flare.ibkr;
 import com.ib.client.Contract;
 import com.ib.client.Decimal;
 import com.ib.client.Order;
-import flare.GenericBroker;
-import flare.IPersistentStorage;
-import flare.OrderManager;
-import flare.RequestManager;
+import flare.*;
 
 
 /**
@@ -19,10 +16,12 @@ public class IBKRClient extends GenericBroker {
     private final OrderManager orderManager;
     private final RequestManager requestManager;
     private final IPersistentStorage persistentStorage;
+    private final Analyst analyst;
 
-    public IBKRClient(IPersistentStorage persistentStorage) {
+    public IBKRClient(IPersistentStorage persistentStorage, Analyst analyst) {
+        this.analyst = analyst;
         this.persistentStorage = persistentStorage;
-        connectionManager = new IBKRConnectionManager(new IBKRWrapper(this));
+        connectionManager = new IBKRConnectionManager(new IBKRWrapper(this, analyst));
         orderManager = new OrderManager();
         requestManager = new RequestManager();
 

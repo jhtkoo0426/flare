@@ -11,8 +11,8 @@ public class Analyst {
 
     }
 
-    public void listenBar(int reqId, long time, double open, double high, double low, double close, Decimal volume) {
-        System.out.printf("Request %d @ %d | o=%.2f h=%.2f l=%.2f c=%.2f volume=%d\n", reqId, time, open, high, low, close, volume.longValue());
+    public void listenBar(String reqData, long time, double open, double high, double low, double close, Decimal volume) {
+        System.out.printf("Request %s @ %d | o=%.2f h=%.2f l=%.2f c=%.2f volume=%d\n", reqData, time, open, high, low, close, volume.longValue());
     }
 
 }

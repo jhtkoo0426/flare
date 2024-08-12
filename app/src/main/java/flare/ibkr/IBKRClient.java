@@ -38,6 +38,11 @@ public class IBKRClient extends GenericBroker {
     public void run() { }
 
     @Override
+    public String getRequestData(int id) {
+        return requestManager.getRequestData(id);
+    }
+
+    @Override
     public void makeOrder(String symbol, String secType, String orderType, double price, double quantity) {
         Contract contract = new Contract();
         contract.symbol(symbol);
@@ -78,7 +83,8 @@ public class IBKRClient extends GenericBroker {
     @Override
     public void subscribeEquityData(String symbol) {
         int requestId = requestManager.getNextId();
-        requestManager.registerRequestData(requestId, symbol, "DATA_STK_" + symbol);
+        String requestData = "DATASUB_" + symbol;
+        requestManager.registerRequestData(requestId, requestData);
         Contract contract = new Contract();
         contract.symbol(symbol);
         contract.secType("STK");

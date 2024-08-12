@@ -39,8 +39,12 @@ public class IBKRConnectionManager {
 
             IBKRClient client = new IBKRClient(persistentStorage, analyst, socket, i);
             clients.add(client);
+
+            // Ensure that the IBKRWrapper has the correct reference to the broker
+            wrapper.setBroker(client);
         }
     }
+
 
     public void startClients() {
         for (IBKRClient client : clients) {

@@ -7,7 +7,7 @@ public class RequestManager extends KeyManager {
         super("REQUEST_ID", null);
     }
 
-    public void registerRequestData(int requestId, String symbol, String requestName) {
-        registerData(requestId, symbol, requestName);
+    public void registerRequestData(int requestId, String requestData) {
+        registerData(requestId, requestData);
     }
 }

@@ -21,6 +21,8 @@ public abstract class GenericBroker implements Runnable {
 
     public abstract void subscribeEquityData(String symbol);
 
+    public abstract String getRequestData(int id);
+
     // Re-usable methods
     public void sleep(long millis) {
         try {

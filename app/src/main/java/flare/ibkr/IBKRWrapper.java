@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class IBKRWrapper implements EWrapper {
 
-    private GenericBroker broker;
+    private IBKRClient broker;
     private final Analyst analyst;
     private final int clientId;
 
@@ -21,7 +21,7 @@ public class IBKRWrapper implements EWrapper {
         this.clientId = instanceId;
     }
 
-    public void setBroker(GenericBroker broker) {
+    public void setBroker(IBKRClient broker) {
         this.broker = broker;
     }
 
@@ -297,7 +297,8 @@ public class IBKRWrapper implements EWrapper {
 
     @Override
     public void realtimeBar(int reqId, long time, double open, double high, double low, double close, Decimal volume, Decimal wap, int count) {
-        analyst.listenBar(reqId, time, open, high, low, close, volume);
+        String data = broker.getRequestData(reqId);
+        analyst.listenBar(data, time, open, high, low, close, volume);
     }
 
     @Override

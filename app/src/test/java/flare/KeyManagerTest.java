@@ -79,7 +79,7 @@ class KeyManagerTest {
         RequestManager requestManager = new RequestManager();
 
         requestManager.initializeId(1);
-        requestManager.registerRequestData(1, "AAPL", "GET");
+        requestManager.registerRequestData(1, "AAPL");
 
         // No assertion needed here as no file writing occurs, but the test should pass
     }

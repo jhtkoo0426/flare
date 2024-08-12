@@ -3,6 +3,7 @@ package flare.ibkr;
 
 import com.ib.client.Contract;
 import com.ib.client.Decimal;
+import com.ib.client.EClientSocket;
 import com.ib.client.Order;
 import flare.*;
 
@@ -12,16 +13,18 @@ import flare.*;
  */
 public class IBKRClient extends GenericBroker {
 
-    private final IBKRConnectionManager connectionManager;
+    private final EClientSocket brokerClient;
     private final OrderManager orderManager;
     private final RequestManager requestManager;
     private final IPersistentStorage persistentStorage;
     private final Analyst analyst;
+    private final int clientID;
 
-    public IBKRClient(IPersistentStorage persistentStorage, Analyst analyst) {
+    public IBKRClient(IPersistentStorage persistentStorage, Analyst analyst, EClientSocket brokerClient, int instanceId) {
         this.analyst = analyst;
         this.persistentStorage = persistentStorage;
-        connectionManager = new IBKRConnectionManager(new IBKRWrapper(this, analyst));
+        this.brokerClient = brokerClient;
+        this.clientID = instanceId;
         orderManager = new OrderManager();
         requestManager = new RequestManager();
 
@@ -32,30 +35,7 @@ public class IBKRClient extends GenericBroker {
     }
 
     @Override
-    public void run() {
-        boolean initialized = false;
-        boolean subscribed = false;
-
-        while (true) {
-            if (!connectionManager.getBrokerClient().isConnected()) {
-                initialized = false;
-                connectionManager.connectToBroker();
-                sleep(5000);
-            } else {
-                if (!initialized) {
-                    connectionManager.setupTWSReader();
-                    initialized = true;
-                    sleep(1000);
-                } else {
-                    if (!subscribed) {
-                        subscribeEquityData("CRWD");
-                        subscribed = true;
-                    }
-                    sleep(1000);
-                }
-            }
-        }
-    }
+    public void run() { }
 
     @Override
     public void makeOrder(String symbol, String secType, String orderType, double price, double quantity) {
@@ -74,7 +54,7 @@ public class IBKRClient extends GenericBroker {
 
         int orderId = orderManager.getNextId();
         orderManager.registerOrderData(orderId, symbol, secType, quantity);
-        connectionManager.getBrokerClient().placeOrder(orderId, contract, order);
+        brokerClient.placeOrder(orderId, contract, order);
 
         // Update the last orderId in persistent storage
         persistentStorage.writeLastOrderId(orderManager.getCurrentId());
@@ -104,11 +84,6 @@ public class IBKRClient extends GenericBroker {
         contract.secType("STK");
         contract.currency("USD");
         contract.exchange("SMART");
-        connectionManager.getBrokerClient().reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
-    }
-
-    @Override
-    public void notifyAnalyst(int reqId, long time, double open, double high, double low, double close, double volume) {
-        System.out.printf("reqId %d | time: %d | o=%.2f, h=%.2f, l=%.2f, c=%.2f | volume=%.2f\n", reqId, time, open, high, low, close, volume);
+        brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
     }
 }

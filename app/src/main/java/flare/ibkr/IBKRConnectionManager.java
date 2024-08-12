@@ -2,6 +2,11 @@ package flare.ibkr;
 
 
 import com.ib.client.*;
+import flare.Analyst;
+import flare.IPersistentStorage;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -9,24 +14,49 @@ import com.ib.client.*;
  */
 public class IBKRConnectionManager {
 
-    private final EClientSocket brokerClient;
-    private final EReaderSignal readerSignal;
+    private final List<EClientSocket> brokerClients;
+    private final List<EReaderSignal> readerSignals;
+    private final List<IBKRClient> clients;
+    private final Analyst analyst;
+    private final IPersistentStorage persistentStorage;
 
-    public IBKRConnectionManager(EWrapper wrapper) {
-        this.readerSignal = new EJavaSignal();
-        this.brokerClient = new EClientSocket(wrapper, readerSignal);
+    public IBKRConnectionManager(Analyst analyst, IPersistentStorage persistentStorage) {
+        this.brokerClients = new ArrayList<>();
+        this.readerSignals = new ArrayList<>();
+        this.clients = new ArrayList<>();
+        this.analyst = analyst;
+        this.persistentStorage = persistentStorage;
     }
 
-    public EClientSocket getBrokerClient() {
-        return brokerClient;
+    public void initializeClients(int numberOfClients) {
+        for (int i = 0; i < numberOfClients; i++) {
+            EJavaSignal signal = new EJavaSignal();
+            readerSignals.add(signal);
+
+            IBKRWrapper wrapper = new IBKRWrapper(analyst, i);
+            EClientSocket socket = new EClientSocket(wrapper, signal);
+            brokerClients.add(socket);
+
+            IBKRClient client = new IBKRClient(persistentStorage, analyst, socket, i);
+            clients.add(client);
+        }
+    }
+
+    public void startClients() {
+        for (IBKRClient client : clients) {
+            new Thread(client).start();
+        }
     }
 
     /**
      * Connects to a running instance of IBKR TWS.
      */
-    public void connectToBroker() {
-        System.out.println("IBKRClient: Attempting to connect to a running TWS instance.");
-        brokerClient.eConnect("127.0.0.1", 7497, 2);
+    public void connectClients() {
+        for (int i = 0; i < brokerClients.size(); i++) {
+            EClientSocket brokerClient = brokerClients.get(i);
+            brokerClient.eConnect("127.0.0.1", 7497, i);
+            setupTWSReader(brokerClient, i);
+        }
     }
 
     /**
@@ -39,18 +69,36 @@ public class IBKRConnectionManager {
      * <p><strong>Note:</strong> This method is intended for internal use and should not be called directly by
      * client code.</p>
      */
-    public void setupTWSReader() {
-        final EReader reader = new EReader(brokerClient, readerSignal);
+    private void setupTWSReader(EClientSocket brokerClient, int id) {
+        EReaderSignal signal = readerSignals.get(id);
+        EReader reader = new EReader(brokerClient, signal);
         reader.start();
+
         new Thread(() -> {
             while (brokerClient.isConnected()) {
-                readerSignal.waitForSignal();
+                signal.waitForSignal();
                 try {
                     reader.processMsgs();
                 } catch (Exception e) {
-                    System.out.println("Exception: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }).start();
+    }
+
+    public boolean isConnected(EClientSocket brokerClient) {
+        return brokerClient.isConnected();
+    }
+
+    public IBKRClient getIBKRClient(int id) {
+        return clients.get(id);
+    }
+
+    public List<EClientSocket> getBrokerClients() {
+        return brokerClients;
+    }
+
+    public List<EReaderSignal> getReaderSignals() {
+        return readerSignals;
     }
 }

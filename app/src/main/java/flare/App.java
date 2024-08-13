@@ -4,6 +4,8 @@ package flare;
 import flare.ibkr.IBKRConnectionManager;
 import io.github.cdimascio.dotenv.Dotenv;
 
+import java.time.LocalDate;
+
 
 public class App {
 
@@ -23,6 +25,7 @@ public class App {
 
         // Assign connections. TODO: Convert to strategy in the future.
         connectionManager.getIBKRClient(1).subscribeEquityData("CRWD");
+        connectionManager.getIBKRClient(2).subscribeOptionData("NVDA", LocalDate.of(2024, 8, 30), 120, "C");
     }
 
 }

@@ -1,6 +1,8 @@
 package flare;
 
 
+import java.time.LocalDate;
+
 /**
  * Superclass for wrapping various broker APIs. All broker interactions should be done via
  * this class.
@@ -19,7 +21,10 @@ public abstract class GenericBroker implements Runnable {
     public abstract void onOrderFilled(int orderId, double avgFillPrice, double quantityFilled);
     public abstract void onOrderCancelled(int orderId);
 
+    // Data subscription methods
     public abstract void subscribeEquityData(String symbol);
+    public abstract void subscribeOptionData(String symbol, LocalDate lastTradeDate, double strike, String right);
+    public abstract void subscribeETFData(String symbol);
 
     public abstract String getRequestData(int id);
 

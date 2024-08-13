@@ -7,6 +7,9 @@ import com.ib.client.EClientSocket;
 import com.ib.client.Order;
 import flare.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 
 /**
  * Broker implementation for the Interactive Brokers (IBKR) Trader WorkStation (TWS).
@@ -88,8 +91,32 @@ public class IBKRClient extends GenericBroker {
         Contract contract = new Contract();
         contract.symbol(symbol);
         contract.secType("STK");
-        contract.currency("USD");
         contract.exchange("SMART");
+        contract.currency("USD");
         brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
+    }
+
+    @Override
+    public void subscribeOptionData(String symbol, LocalDate lastTradeDate, double strike, String right) {
+        int requestId = requestManager.getNextId();
+        String requestData = "DATASUB_" + OCCFormatter.formatOCC(symbol, lastTradeDate, strike, right);
+        requestManager.registerRequestData(requestId, requestData);
+
+        String expiryDateIBKRFormat = OCCFormatter.formatDate(lastTradeDate, "yyyyMMdd");
+        Contract contract = new Contract();
+        contract.symbol(symbol);
+        contract.secType("OPT");
+        contract.exchange("SMART");
+        contract.currency("USD");
+        contract.lastTradeDateOrContractMonth(expiryDateIBKRFormat);
+        contract.strike(strike);
+        contract.right(right);
+        contract.multiplier("100");
+        brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
+    }
+
+    @Override
+    public void subscribeETFData(String symbol) {
+
     }
 }

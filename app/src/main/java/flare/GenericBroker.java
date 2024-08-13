@@ -1,13 +1,7 @@
 package flare;
 
 
-import com.ib.client.Order;
-
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import java.time.LocalDate;
 
 /**
  * Superclass for wrapping various broker APIs. All broker interactions should be done via
@@ -15,10 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class GenericBroker implements Runnable {
 
-    public OrderManager orderManager;
-
     public GenericBroker() {
-        this.orderManager = new OrderManager();
+
     }
 
     // Abstract methods
@@ -28,6 +20,13 @@ public abstract class GenericBroker implements Runnable {
     public abstract void onOrderPlaced(int orderId, double executionPrice, double quantity);
     public abstract void onOrderFilled(int orderId, double avgFillPrice, double quantityFilled);
     public abstract void onOrderCancelled(int orderId);
+
+    // Data subscription methods
+    public abstract void subscribeEquityData(String symbol);
+    public abstract void subscribeOptionData(String symbol, LocalDate lastTradeDate, double strike, String right);
+    public abstract void subscribeETFData(String symbol);
+
+    public abstract String getRequestData(int id);
 
     // Re-usable methods
     public void sleep(long millis) {

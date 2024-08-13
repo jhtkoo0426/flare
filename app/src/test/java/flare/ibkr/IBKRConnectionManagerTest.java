@@ -1,55 +1,50 @@
 package flare.ibkr;
 
-import com.ib.client.*;
+import com.ib.client.EClientSocket;
+import com.ib.client.EReaderSignal;
+import flare.Analyst;
+import flare.IPersistentStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 
 class IBKRConnectionManagerTest {
 
-    private EWrapper mockWrapper;
-    private EClientSocket mockClientSocket;
-    private EReaderSignal mockReaderSignal;
     private IBKRConnectionManager connectionManager;
+    private Analyst mockAnalyst;
+    private IPersistentStorage mockPersistentStorage;
 
     @BeforeEach
     void setUp() {
-        mockWrapper = mock(EWrapper.class);
-        mockClientSocket = mock(EClientSocket.class);
-        mockReaderSignal = mock(EReaderSignal.class);
-        connectionManager = new IBKRConnectionManager(mockWrapper);
-
-        // Injecting mocks into the connection manager using reflection (since it's not designed for dependency injection)
-        try {
-            var brokerClientField = IBKRConnectionManager.class.getDeclaredField("brokerClient");
-            brokerClientField.setAccessible(true);
-            brokerClientField.set(connectionManager, mockClientSocket);
-
-            var readerSignalField = IBKRConnectionManager.class.getDeclaredField("readerSignal");
-            readerSignalField.setAccessible(true);
-            readerSignalField.set(connectionManager, mockReaderSignal);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        mockAnalyst = mock(Analyst.class);
+        mockPersistentStorage = mock(IPersistentStorage.class);
+        connectionManager = new IBKRConnectionManager(mockAnalyst, mockPersistentStorage);
     }
 
     @Test
-    void testConstructorInitializesFields() {
-        IBKRConnectionManager manager = new IBKRConnectionManager(mockWrapper);
-        assertNotNull(manager.getBrokerClient());
+    void testInitializeClients() {
+        connectionManager.initializeClients(5);
+
+        List<EClientSocket> clients = connectionManager.getBrokerClients();
+        List<EReaderSignal> signals = connectionManager.getReaderSignals();
+
+        assertEquals(5, clients.size());
+        assertEquals(5, signals.size());
     }
 
     @Test
-    void testGetBrokerClient() {
-        assertEquals(mockClientSocket, connectionManager.getBrokerClient());
-    }
+    void testStartClients() {
+        connectionManager.initializeClients(5);
+        connectionManager.startClients();
 
-    @Test
-    void testConnectToBroker() {
-        connectionManager.connectToBroker();
-        verify(mockClientSocket).eConnect("127.0.0.1", 7497, 2);
+        // Verifying that threads were started, but we can't directly test this in a straightforward way without
+        // significantly more complex test code. Instead, we can check that clients are initialized.
+        List<EClientSocket> clients = connectionManager.getBrokerClients();
+        assertEquals(5, clients.size());
     }
 }

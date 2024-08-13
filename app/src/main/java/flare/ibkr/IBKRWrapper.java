@@ -2,6 +2,7 @@ package flare.ibkr;
 
 
 import com.ib.client.*;
+import flare.Analyst;
 import flare.GenericBroker;
 
 import java.util.List;
@@ -11,9 +12,16 @@ import java.util.Set;
 
 public class IBKRWrapper implements EWrapper {
 
-    private final GenericBroker broker;
+    private IBKRClient broker;
+    private final Analyst analyst;
+    private final int clientId;
 
-    public IBKRWrapper(GenericBroker broker) {
+    public IBKRWrapper(Analyst analyst, int instanceId) {
+        this.analyst = analyst;
+        this.clientId = instanceId;
+    }
+
+    public void setBroker(IBKRClient broker) {
         this.broker = broker;
     }
 
@@ -64,12 +72,12 @@ public class IBKRWrapper implements EWrapper {
 
     @Override
     public void connectAck() {
-        System.out.println("Connected to TWS.");
+        System.out.printf("Client " + clientId + " connected to TWS.\n", clientId);
     }
 
     @Override
     public void connectionClosed() {
-        System.out.println("Disconnected from TWS.");
+        System.out.printf("Client " + clientId + " disconnected from TWS.\n", clientId);
     }
 
     @Override
@@ -104,17 +112,17 @@ public class IBKRWrapper implements EWrapper {
 
     @Override
     public void error(Exception e) {
-        System.out.println("Error: " + e.getMessage());
+        System.out.println("Client " + clientId + " Error: " + e.getMessage());
     }
 
     @Override
     public void error(String str) {
-        System.out.println("Error: " + str);
+        System.out.println("Client " + clientId + " Error: " + str);
     }
 
     @Override
     public void error(int id, int errorCode, String errorMsg, String advancedOrderRejectJson) {
-        String formattedMessage = String.format("IBKR TWS System [%d]: %s", errorCode, errorMsg);
+        String formattedMessage = String.format("Client %d: IBKR TWS System [%d]: %s", clientId, errorCode, errorMsg);
         System.out.println(formattedMessage);
     }
 
@@ -246,7 +254,10 @@ public class IBKRWrapper implements EWrapper {
     @Override
     public void orderStatus(int orderId, String status, Decimal filled, Decimal remaining, double avgFillPrice,
                             int permId, int parentId, double lastFillPrice, int clientId, String whyHeld, double mktCapPrice) {
-        System.out.println("Order Status: " + status + " Order ID: " + orderId);
+        System.out.printf("Client %d | Order ID: %d Status: %s Filled: %s Remaining: %s Average Fill Price: %.2f " +
+                        "Perm ID: %d Parent ID: %d Last Fill Price: %.2f Client ID: %d Why Held: %s Market Cap Price: %.2f\n",
+                clientId, orderId, status, filled, remaining, avgFillPrice,
+                permId, parentId, lastFillPrice, clientId, whyHeld, mktCapPrice);
         if (status.equals("Filled")) {
             broker.onOrderFilled(orderId, avgFillPrice, filled.longValue());
         } else if (status.equals("Cancelled")) {
@@ -285,8 +296,9 @@ public class IBKRWrapper implements EWrapper {
     }
 
     @Override
-    public void realtimeBar(int i, long l, double v, double v1, double v2, double v3, Decimal decimal, Decimal decimal1, int i1) {
-
+    public void realtimeBar(int reqId, long time, double open, double high, double low, double close, Decimal volume, Decimal wap, int count) {
+        String data = broker.getRequestData(reqId);
+        analyst.listenBar(data, time, open, high, low, close, volume);
     }
 
     @Override

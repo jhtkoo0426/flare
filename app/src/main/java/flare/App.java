@@ -1,15 +1,31 @@
 package flare;
 
 
-import flare.ibkr.IBKRClient;
+import flare.ibkr.IBKRConnectionManager;
+import io.github.cdimascio.dotenv.Dotenv;
+
+import java.time.LocalDate;
+
 
 public class App {
 
     public static void main(String[] args) {
         System.out.println("Hello world!");
-        GenericBroker broker = new IBKRClient();
-        Thread thread = new Thread(broker);
-        thread.start();
+        Dotenv dotenv = Dotenv.load();
+
+        // Prepare required modules for GenericBroker
+        IPersistentStorage persistentStorage = new PersistentStorage(dotenv);
+        Analyst analyst = new Analyst();
+
+        // Create a single IBKRConnectionManager that will manage multiple clients
+        IBKRConnectionManager connectionManager = new IBKRConnectionManager(analyst, persistentStorage);
+        connectionManager.initializeClients(4);
+        connectionManager.startClients();
+        connectionManager.connectClients();
+
+        // Assign connections. TODO: Convert to strategy in the future.
+        connectionManager.getIBKRClient(1).subscribeEquityData("CRWD");
+        connectionManager.getIBKRClient(2).subscribeOptionData("NVDA", LocalDate.of(2024, 8, 30), 120, "C");
     }
 
 }

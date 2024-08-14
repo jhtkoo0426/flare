@@ -8,7 +8,6 @@ import com.ib.client.Order;
 import flare.*;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 
 /**
@@ -84,39 +83,35 @@ public class IBKRClient extends GenericBroker {
     }
 
     @Override
-    public void subscribeEquityData(String symbol) {
+    public void subscribeMarketData(String symbol, String secType, String exchange, LocalDate expiryDate, Double strike, String right) {
         int requestId = requestManager.getNextId();
-        String requestData = "DATASUB_" + symbol;
-        requestManager.registerRequestData(requestId, requestData);
+        String requestData = "DATASUB_";
         Contract contract = new Contract();
         contract.symbol(symbol);
-        contract.secType("STK");
-        contract.exchange("SMART");
+        contract.exchange(exchange);
         contract.currency("USD");
+
+        switch (secType) {
+            case "STK":
+                requestData += symbol;
+                contract.secType("STK");
+                break;
+            case "OPT":
+                requestData += OCCFormatter.formatOCC(symbol, expiryDate, strike, right);
+                String expiryDateIBKRFormat = OCCFormatter.formatDate(expiryDate, "yyyyMMdd");
+
+                contract.secType("OPT");
+                contract.lastTradeDateOrContractMonth(expiryDateIBKRFormat);
+                contract.strike(strike);
+                contract.right(right);
+                contract.multiplier("100");
+                break;
+            default:
+                break;
+        }
+
+        requestManager.registerRequestData(requestId, requestData);
         brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
     }
 
-    @Override
-    public void subscribeOptionData(String symbol, LocalDate lastTradeDate, double strike, String right) {
-        int requestId = requestManager.getNextId();
-        String requestData = "DATASUB_" + OCCFormatter.formatOCC(symbol, lastTradeDate, strike, right);
-        requestManager.registerRequestData(requestId, requestData);
-
-        String expiryDateIBKRFormat = OCCFormatter.formatDate(lastTradeDate, "yyyyMMdd");
-        Contract contract = new Contract();
-        contract.symbol(symbol);
-        contract.secType("OPT");
-        contract.exchange("SMART");
-        contract.currency("USD");
-        contract.lastTradeDateOrContractMonth(expiryDateIBKRFormat);
-        contract.strike(strike);
-        contract.right(right);
-        contract.multiplier("100");
-        brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
-    }
-
-    @Override
-    public void subscribeETFData(String symbol) {
-
-    }
 }

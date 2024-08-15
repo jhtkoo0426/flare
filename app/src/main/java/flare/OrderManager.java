@@ -36,6 +36,7 @@ public class OrderManager extends KeyManager {
      * @param quantity the quantity of the order
      */
     public void registerOrderData(int orderId, String symbol, String secType, double quantity) {
-        registerData(orderId, symbol, secType, String.valueOf(quantity));
+        RequestStruct requestData = new RequestStruct(symbol, secType, null, null, null, quantity);
+        registerData(orderId, requestData);
     }
 }

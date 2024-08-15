@@ -5,6 +5,7 @@ import com.ib.client.Contract;
 import com.ib.client.Decimal;
 import com.ib.client.EClientSocket;
 import com.ib.client.Order;
+import com.sun.net.httpserver.Request;
 import flare.*;
 
 import java.time.LocalDate;
@@ -41,7 +42,7 @@ public class IBKRClient extends GenericBroker {
     public void run() { }
 
     @Override
-    public String getRequestData(int id) {
+    public RequestStruct getRequestData(int id) {
         return requestManager.getRequestData(id);
     }
 
@@ -86,7 +87,7 @@ public class IBKRClient extends GenericBroker {
     @Override
     public void subscribeEquityData(String symbol) {
         int requestId = requestManager.getNextId();
-        String requestData = "DATASUB_" + symbol;
+        RequestStruct requestData = new RequestStruct(symbol, "STK", null, null, null, null);
         requestManager.registerRequestData(requestId, requestData);
         Contract contract = new Contract();
         contract.symbol(symbol);
@@ -99,7 +100,7 @@ public class IBKRClient extends GenericBroker {
     @Override
     public void subscribeOptionData(String symbol, LocalDate lastTradeDate, double strike, String right) {
         int requestId = requestManager.getNextId();
-        String requestData = "DATASUB_" + OCCFormatter.formatOCC(symbol, lastTradeDate, strike, right);
+        RequestStruct requestData = new RequestStruct(symbol, "OPT", strike, right, lastTradeDate, null);
         requestManager.registerRequestData(requestId, requestData);
 
         String expiryDateIBKRFormat = OCCFormatter.formatDate(lastTradeDate, "yyyyMMdd");
@@ -113,6 +114,8 @@ public class IBKRClient extends GenericBroker {
         contract.right(right);
         contract.multiplier("100");
         brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
+        sleep(1000);
+        brokerClient.reqMktData(requestId, contract, "", false, false, null);
     }
 
     @Override

@@ -18,7 +18,7 @@ public class KeyManager {
     protected final SharedDataStorage storage;
     protected final String idKey;
     protected final String logFilePath;
-    protected final Map<Integer, String> requestMap;
+    protected final Map<Integer, RequestStruct> requestMap;
 
     /**
      * Constructs a KeyManager with a specified ID key and log file path.
@@ -68,23 +68,10 @@ public class KeyManager {
      * The data is stored in the internal map and optionally logged to a file if a log file path is specified.
      *
      * @param id         the unique identifier for the data
-     * @param dataFields the data fields to be associated with the ID
+     * @param requestData the data fields to be associated with the ID
      */
-    public void registerData(int id, String... dataFields) {
-        // Register the data and add it to the requestMap
-        String data = String.join(",", dataFields);
-        System.out.printf("ID %d registered with data: %s\n", id, data);
-        requestMap.put(id, data);
-
-        if (logFilePath != null && !logFilePath.isEmpty()) {
-            String line = id + "," + data + "\n";
-
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFilePath, true))) {
-                writer.write(line);
-            } catch (IOException e) {
-                System.err.println("[KeyManager] Error saving data: " + e.getMessage());
-            }
-        }
+    public void registerData(int id, RequestStruct requestData) {
+        requestMap.put(id, requestData);
     }
 
     /**
@@ -94,7 +81,7 @@ public class KeyManager {
      * @param id the unique identifier for the data
      * @return the data associated with the ID, or an empty string if no data is found
      */
-    public String getRequestData(int id) {
-        return requestMap.getOrDefault(id, "");
+    public RequestStruct getRequestData(int id) {
+        return requestMap.getOrDefault(id, null);
     }
 }

@@ -23,7 +23,7 @@ public class RequestManager extends KeyManager {
      * @param requestId   the unique identifier for the request
      * @param requestData the data associated with the request
      */
-    public void registerRequestData(int requestId, String requestData) {
+    public void registerRequestData(int requestId, RequestStruct requestData) {
         registerData(requestId, requestData);
     }
 }

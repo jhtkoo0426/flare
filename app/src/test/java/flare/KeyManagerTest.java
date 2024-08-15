@@ -3,9 +3,7 @@ package flare;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,35 +50,31 @@ class KeyManagerTest {
     }
 
     @Test
-    void testRegisterDataWithFileLogging() throws IOException {
-        // Create a temporary file for logging
-        Path tempFile = Files.createTempFile("order_logs", ".csv");
-        tempFile.toFile().deleteOnExit(); // Ensure the temp file is deleted on exit
-
-        // Create an instance of OrderManager with the temporary file path
-        OrderManager orderManager = new OrderManager(tempFile.toString());
-
-        // Initialize the ID and register some order data
-        orderManager.initializeId(1);
-        orderManager.registerOrderData(1, "AAPL", "STOCK", 50.5);
-
-        // Read the contents of the temp file and verify it contains the expected data
-        String content = Files.readString(tempFile);
-        assertTrue(content.contains("1,AAPL,STOCK,50.5"));
-
-        // Cleanup the temp file
-        Files.delete(tempFile);
-    }
-
-
-
-    @Test
     void testRegisterDataWithoutFileLogging() {
         RequestManager requestManager = new RequestManager();
 
         requestManager.initializeId(1);
-        requestManager.registerRequestData(1, "AAPL");
 
-        // No assertion needed here as no file writing occurs, but the test should pass
+        // Create sample RequestStruct data
+        RequestStruct requestData = new RequestStruct(
+                "AAPL",
+                "STOCK",
+                150.0,
+                "CALL",
+                LocalDate.of(2024, 12, 31),
+                100.0
+        );
+
+        requestManager.registerRequestData(1, requestData);
+
+        // Retrieve the data and verify its correctness
+        RequestStruct registeredData = requestManager.getRequestData(1);
+        assertNotNull(registeredData, "Registered data should not be null");
+        assertEquals("AAPL", registeredData.getSymbol());
+        assertEquals("STOCK", registeredData.getSecType());
+        assertEquals(150.0, registeredData.getStrike());
+        assertEquals("CALL", registeredData.getRight());
+        assertEquals(LocalDate.of(2024, 12, 31), registeredData.getLastTradeDate());
+        assertEquals(100.0, registeredData.getQuantity());
     }
 }

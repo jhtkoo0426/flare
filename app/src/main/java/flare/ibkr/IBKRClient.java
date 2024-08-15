@@ -113,8 +113,12 @@ public class IBKRClient extends GenericBroker {
         contract.strike(strike);
         contract.right(right);
         contract.multiplier("100");
+
+        // Request real time bars for the option contract.
         brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
         sleep(1000);
+
+        // Request market data for the option contract, e.g. greeks, implied volatility, option price.
         brokerClient.reqMktData(requestId, contract, "", false, false, null);
     }
 

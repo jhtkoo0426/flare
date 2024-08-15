@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Analyst {
 
     private BaseModel model;
-    private ConcurrentHashMap<String, Double> lastPrices = new ConcurrentHashMap<>();
+    public ConcurrentHashMap<String, Double> lastPrices = new ConcurrentHashMap<>();
 
     public Analyst() {
 
@@ -34,12 +34,16 @@ public class Analyst {
             System.out.printf("%s | Actual: %.2f | Predicted: %.2f\n", key, actualOptionPrice, call);
         } else {
             double put = model.put(spot, optionStrike, optionImpliedVol, expiryDate);
-            System.out.printf("\"%s | Actual: %.2f | Predicted: %.2f\n", key, actualOptionPrice, put);
+            System.out.printf("%s | Actual: %.2f | Predicted: %.2f\n", key, actualOptionPrice, put);
         }
     }
 
     public void loadModel(BaseModel model) {
         this.model = model;
+    }
+
+    public BaseModel getModel() {
+        return model;
     }
 
 }

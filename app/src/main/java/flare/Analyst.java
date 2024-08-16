@@ -15,8 +15,8 @@ public class Analyst {
     private BaseModel model;
     public ConcurrentHashMap<String, Double> lastPrices = new ConcurrentHashMap<>();
 
-    public Analyst() {
-
+    public Analyst(BaseModel model) {
+        this.model = model;
     }
 
     public void listenBar(RequestStruct reqData, long time, double open, double high, double low, double close, Decimal volume) {
@@ -25,21 +25,13 @@ public class Analyst {
     }
 
     public void analyseOption(String symbol, String underlyingSecType, double underlyingSpot, double optionStrike, double optionImpliedVol, LocalDate expiryDate, String right, double actualOptionPrice) {
-        String secType = "STK";
-        double spot = lastPrices.get(symbol + secType);
         String key = OCCFormatter.formatOCC(symbol, expiryDate, optionStrike, right);
 
-        if (right.equals("C")) {
-            double call = model.call(spot, optionStrike, optionImpliedVol, expiryDate);
-            System.out.printf("%s | Actual: %.2f | Predicted: %.2f\n", key, actualOptionPrice, call);
-        } else {
-            double put = model.put(spot, optionStrike, optionImpliedVol, expiryDate);
-            System.out.printf("%s | Actual: %.2f | Predicted: %.2f\n", key, actualOptionPrice, put);
-        }
-    }
+        double predictedPrice = right.equals("C")
+                ? model.call(underlyingSpot, optionStrike, optionImpliedVol, expiryDate)
+                : model.put(underlyingSpot, optionStrike, optionImpliedVol, expiryDate);
 
-    public void loadModel(BaseModel model) {
-        this.model = model;
+        System.out.printf("%s | Actual: %.2f | Predicted: %.2f\n", key, actualOptionPrice, predictedPrice);
     }
 
     public BaseModel getModel() {

@@ -402,6 +402,10 @@ public class IBKRWrapper implements EWrapper {
     @Override
     public void tickPrice(int tickerId, int field, double price, TickAttrib attribs) {
         // System.out.println("Tick Price: " + EWrapperMsgGenerator.tickPrice( tickerId, field, price, attribs));
+        if (field == 2) {
+            System.out.println("Setting 10Y tbill rate...");
+            analyst.getModel().setRiskFree(price / 100);
+        }
     }
 
     @Override

@@ -11,14 +11,15 @@ import java.time.LocalDate;
 
 public class App {
 
+    private static BaseModel model;
+
     private static IBKRConnectionManager getIbkrConnectionManager(Dotenv dotenv) {
         // TODO: Scrape market data such as T-bill rates (for risk-free interest rate)
-        BaseModel model = new BlackScholes(0.03);
+        BaseModel model = new BlackScholes(0.0);
 
         // Prepare required modules for GenericBroker
         IPersistentStorage persistentStorage = new PersistentStorage(dotenv);
-        Analyst analyst = new Analyst();
-        analyst.loadModel(model);
+        Analyst analyst = new Analyst(model);
 
         // Create a single IBKRConnectionManager that will manage multiple clients
         IBKRConnectionManager connectionManager = new IBKRConnectionManager(analyst, persistentStorage);
@@ -35,9 +36,10 @@ public class App {
         connectionManager.connectClients();
 
         // Assign connections. TODO: Convert to strategy in the future.
-        connectionManager.getIBKRClient(1).subscribeEquityData("CRWD");
-        connectionManager.getIBKRClient(2).subscribeEquityData("NVDA");
-        connectionManager.getIBKRClient(2).subscribeOptionData("NVDA", LocalDate.of(2024, 8, 30), 120, "C");
+        connectionManager.getIBKRClient(0).subscribeMarketData("10Y", "BOND", null, null, null);
+        connectionManager.getIBKRClient(1).subscribeMarketData("CRWD", "STK", null, null, null);
+        connectionManager.getIBKRClient(2).subscribeMarketData("NVDA", "STK", null, null, null);
+        connectionManager.getIBKRClient(2).subscribeMarketData("NVDA", "OPT", LocalDate.of(2024, 8, 30), 120.00, "C");
     }
 
 }

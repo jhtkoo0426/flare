@@ -4,6 +4,7 @@ package flare.ibkr;
 import com.ib.client.*;
 import flare.Analyst;
 import flare.GenericBroker;
+import flare.RequestStruct;
 
 import java.util.List;
 import java.util.Map;
@@ -297,7 +298,7 @@ public class IBKRWrapper implements EWrapper {
 
     @Override
     public void realtimeBar(int reqId, long time, double open, double high, double low, double close, Decimal volume, Decimal wap, int count) {
-        String data = broker.getRequestData(reqId);
+        RequestStruct data = broker.getRequestData(reqId);
         analyst.listenBar(data, time, open, high, low, close, volume);
     }
 
@@ -392,13 +393,19 @@ public class IBKRWrapper implements EWrapper {
     }
 
     @Override
-    public void tickOptionComputation(int i, int i1, int i2, double v, double v1, double v2, double v3, double v4, double v5, double v6, double v7) {
-
+    public void tickOptionComputation(int tickerId, int field, int tickAttrib, double impliedVol, double delta, double optPrice,
+                                      double pvDividend, double gamma, double vega, double theta, double undPrice) {
+        RequestStruct data = broker.getRequestData(tickerId);
+        analyst.analyseOption(data.getSymbol(), "STK", undPrice, data.getStrike(), impliedVol, data.getLastTradeDate(), data.getRight(), optPrice);
     }
 
     @Override
-    public void tickPrice(int i, int i1, double v, TickAttrib tickAttrib) {
-
+    public void tickPrice(int tickerId, int field, double price, TickAttrib attribs) {
+        // System.out.println("Tick Price: " + EWrapperMsgGenerator.tickPrice( tickerId, field, price, attribs));
+        if (field == 2) {
+            System.out.println("Setting 10Y tbill rate...");
+            analyst.getModel().setRiskFree(price / 100);
+        }
     }
 
     @Override

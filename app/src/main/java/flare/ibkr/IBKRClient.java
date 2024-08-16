@@ -8,7 +8,6 @@ import com.ib.client.Order;
 import flare.*;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 
 /**
@@ -41,21 +40,34 @@ public class IBKRClient extends GenericBroker {
     public void run() { }
 
     @Override
-    public String getRequestData(int id) {
+    public RequestStruct getRequestData(int id) {
         return requestManager.getRequestData(id);
+    }
+
+    private Contract createContract(String symbol, String secType, String exchange, String currency) {
+        Contract contract = new Contract();
+        contract.symbol(symbol);
+        contract.secType(secType);
+        contract.exchange(exchange);
+        contract.currency(currency);
+        return contract;
+    }
+
+    private Contract createOptionContract(String symbol, LocalDate lastTradeDate, double strike, String right) {
+        Contract contract = createContract(symbol, "OPT", "SMART", "USD");
+        contract.lastTradeDateOrContractMonth(OCCFormatter.formatDate(lastTradeDate, "yyyyMMdd"));
+        contract.strike(strike);
+        contract.right(right);
+        contract.multiplier("100");
+        return contract;
     }
 
     @Override
     public void makeOrder(String symbol, String secType, String orderType, double price, double quantity) {
-        Contract contract = new Contract();
-        contract.symbol(symbol);
-        contract.secType(secType);
-        contract.exchange("SMART");
-        contract.currency("USD");
+        Contract contract = createContract(symbol, secType, "SMART", "USD");
 
-        String action = (quantity > 0) ? "BUY" : "SELL";
         Order order = new Order();
-        order.action(action);
+        order.action(quantity > 0 ? "BUY" : "SELL");
         order.orderType(orderType);
         order.totalQuantity(Decimal.get(quantity));
         order.lmtPrice(price);
@@ -64,7 +76,6 @@ public class IBKRClient extends GenericBroker {
         orderManager.registerOrderData(orderId, symbol, secType, quantity);
         brokerClient.placeOrder(orderId, contract, order);
 
-        // Update the last orderId in persistent storage
         persistentStorage.writeLastOrderId(orderManager.getCurrentId());
     }
 
@@ -84,39 +95,26 @@ public class IBKRClient extends GenericBroker {
     }
 
     @Override
-    public void subscribeEquityData(String symbol) {
+    public void subscribeMarketData(String symbol, String secType, LocalDate expiryDate, Double strike, String right) {
         int requestId = requestManager.getNextId();
-        String requestData = "DATASUB_" + symbol;
-        requestManager.registerRequestData(requestId, requestData);
-        Contract contract = new Contract();
-        contract.symbol(symbol);
-        contract.secType("STK");
-        contract.exchange("SMART");
-        contract.currency("USD");
-        brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
-    }
-
-    @Override
-    public void subscribeOptionData(String symbol, LocalDate lastTradeDate, double strike, String right) {
-        int requestId = requestManager.getNextId();
-        String requestData = "DATASUB_" + OCCFormatter.formatOCC(symbol, lastTradeDate, strike, right);
+        RequestStruct requestData = new RequestStruct(symbol, secType, strike, right, expiryDate, null);
         requestManager.registerRequestData(requestId, requestData);
 
-        String expiryDateIBKRFormat = OCCFormatter.formatDate(lastTradeDate, "yyyyMMdd");
-        Contract contract = new Contract();
-        contract.symbol(symbol);
-        contract.secType("OPT");
-        contract.exchange("SMART");
-        contract.currency("USD");
-        contract.lastTradeDateOrContractMonth(expiryDateIBKRFormat);
-        contract.strike(strike);
-        contract.right(right);
-        contract.multiplier("100");
-        brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
+        Contract contract;
+        if (secType.equals("OPT")) {
+            contract = createOptionContract(symbol, expiryDate, strike, right);
+            brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
+            sleep(1000);
+
+            // Request market data for the option contract, e.g., greeks, implied volatility, option price.
+            brokerClient.reqMktData(requestId, contract, "", false, false, null);
+        } else if (secType.equals("STK")) {
+            contract = createContract(symbol, secType, "SMART", "USD");
+            brokerClient.reqRealTimeBars(requestId, contract, 5, "MIDPOINT", true, null);
+        } else if (secType.equals("BOND")) {
+            contract = createContract(symbol, secType, "SMART", "USD");
+            brokerClient.reqMktData(requestId, contract, "", false, false, null);
+        }
     }
 
-    @Override
-    public void subscribeETFData(String symbol) {
-
-    }
 }

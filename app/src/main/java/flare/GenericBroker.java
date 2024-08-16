@@ -22,11 +22,9 @@ public abstract class GenericBroker implements Runnable {
     public abstract void onOrderCancelled(int orderId);
 
     // Data subscription methods
-    public abstract void subscribeEquityData(String symbol);
-    public abstract void subscribeOptionData(String symbol, LocalDate lastTradeDate, double strike, String right);
-    public abstract void subscribeETFData(String symbol);
+    public abstract void subscribeMarketData(String symbol, String secType, LocalDate expiryDate, Double strike, String right);
 
-    public abstract String getRequestData(int id);
+    public abstract RequestStruct getRequestData(int id);
 
     // Re-usable methods
     public void sleep(long millis) {
